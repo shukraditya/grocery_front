@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product List</title>
+    <title>Manage Products</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -17,11 +17,12 @@
             margin-top: 20px;
         }
 
-        .cart-button {
+        /* Add Product Button */
+        .add-product-button {
             position: fixed;
             top: 20px;
             right: 20px;
-            background-color: #007BFF;
+            background-color: #28a745;
             color: white;
             padding: 10px 20px;
             border: none;
@@ -31,8 +32,8 @@
             transition: background-color 0.3s ease;
         }
 
-        .cart-button:hover {
-            background-color: #0056b3;
+        .add-product-button:hover {
+            background-color: #218838;
         }
 
         #productContainer {
@@ -46,9 +47,8 @@
             background-color: white;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
             padding: 20px;
-            position: relative; /* For positioning the delete button */
+            position: relative;
             transition: transform 0.3s ease-in-out;
         }
 
@@ -72,22 +72,7 @@
             color: #555;
         }
 
-        .product button {
-            background-color: #007BFF;
-            color: white;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1em;
-            transition: background-color 0.3s ease;
-        }
-
-        .product button:hover {
-            background-color: #0056b3;
-        }
-
-        /* Bin Icon (Delete button) */
+        /* Bin Icon */
         .delete-btn {
             position: absolute;
             top: 10px;
@@ -108,7 +93,6 @@
         .quantity-input {
             width: 60px;
             padding: 5px;
-            margin-top: 10px;
             font-size: 1em;
             border: 1px solid #ccc;
             border-radius: 4px;
@@ -116,28 +100,28 @@
     </style>
 </head>
 <body>
-    <!-- Cart Button -->
-    <button class="cart-button" onclick="window.location.href='cart.html'">Go to Cart</button>
+    <!-- Add Product Button -->
+    <button class="add-product-button" onclick="window.location.href='addproducts.html'">Add Product</button>
 
-    <h1>Product List</h1>
+    <h1>Manage Products</h1>
     <div id="productContainer"></div>
 
     <script>
-        // Function to fetch products
+        // Fetch products from the server
         function fetchProducts() {
-            const token = localStorage.getItem('token'); // Get the token from localStorage
+            const token = localStorage.getItem('token');
 
             if (!token) {
                 alert('Please log in first!');
-                window.location.href = '/login'; // Redirect to login if no token is found
+                window.location.href = '/login';
                 return;
             }
 
             fetch('http://localhost:3000/api/products', {
                 method: 'GET',
                 headers: {
-                    'Authorization': `Bearer ${token}`,  // Include the token in the Authorization header
-                    'Content-Type': 'application/json'   // Set content type as JSON
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
                 }
             })
             .then(response => response.json())
@@ -154,10 +138,10 @@
             });
         }
 
-        // Function to display products in HTML
+        // Display products with delete and update options
         function displayProducts(products) {
             const container = document.getElementById('productContainer');
-            container.innerHTML = ''; // Clear any previous content
+            container.innerHTML = '';
 
             if (products.length === 0) {
                 container.innerHTML = '<p>No products available.</p>';
@@ -167,127 +151,113 @@
             products.forEach(product => {
                 const productDiv = document.createElement('div');
                 productDiv.classList.add('product');
-                
-                // Create the delete button (bin icon)
+
+                // Delete button
                 const deleteButton = document.createElement('button');
                 deleteButton.classList.add('delete-btn');
-                deleteButton.innerHTML = '&#128465;'; // Unicode for the bin icon
-                deleteButton.onclick = () => deleteProduct(product._id); // Bind delete functionality
+                deleteButton.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M3 6l3 16h12l3-16h-18zm3 4h2v10h-2v-10zm4 0h2v10h-2v-10zm4 0h2v10h-2v-10zm4-8v2h-16v-2h5.5l1-1h7l1 1h5.5z"/>
+                    </svg>
+                `;
+                deleteButton.onclick = () => deleteProduct(product._id);
 
-                // Add quantity input field
-                const quantityInput = document.createElement('input');
-                quantityInput.type = 'number';
-                quantityInput.classList.add('quantity-input');
-                quantityInput.value = 1;
-                quantityInput.id = `quantity-${product._id}`;
-
+                // Product details
                 productDiv.innerHTML = `
                     <img src="${product.imageUrl}" alt="${product.name}">
                     <h3>${product.name}</h3>
                     <p>${product.description}</p>
                     <p>Price: $${product.price}</p>
                     <p>Category: ${product.category}</p>
-                    <p>Stock: ${product.stock}</p>
+                    <p>Current Stock: ${product.stock}</p>
                 `;
-                
-                // Append the quantity input and delete button to the product div
+
+                // Quantity input
+                const quantityInput = document.createElement('input');
+                quantityInput.type = 'number';
+                quantityInput.classList.add('quantity-input');
+                quantityInput.value = product.stock;
+                quantityInput.id = `quantity-${product._id}`;
+
+                // Update button
+                const updateButton = document.createElement('button');
+                updateButton.innerText = 'Update Inventory';
+                updateButton.onclick = () => updateProduct(product._id);
+
+                // Append elements
                 productDiv.appendChild(quantityInput);
+                productDiv.appendChild(updateButton);
                 productDiv.appendChild(deleteButton);
-
-                // Add "Add to Cart" button
-                const addToCartButton = document.createElement('button');
-                addToCartButton.innerText = 'Add to Cart';
-                addToCartButton.onclick = () => addToCart(product._id);
-                productDiv.appendChild(addToCartButton);
-
                 container.appendChild(productDiv);
             });
         }
 
-        // Function to handle adding to cart (for demonstration purposes)
-        function addToCart(productId) {
+        // Update product inventory
+        function updateProduct(productId) {
             const quantityInput = document.getElementById(`quantity-${productId}`);
-            const quantity = quantityInput ? quantityInput.value : 1; // Default to 1 if not found
+            const newStock = parseInt(quantityInput.value);
 
-            if (!quantity || quantity <= 0) {
-                alert('Please enter a valid quantity.');
+            if (isNaN(newStock) || newStock < 0) {
+                alert('Please enter a valid stock quantity.');
                 return;
             }
-
-            const data = {
-                productId: productId,
-                quantity: parseInt(quantity) 
-            };
 
             const token = localStorage.getItem('token');
             if (!token) {
-                alert('You must be logged in to add items to the cart.');
-                window.location.href = '/login.html'; 
+                alert('You must be logged in to update inventory.');
+                window.location.href = '/login.html';
                 return;
             }
 
-            fetch('http://localhost:3000/api/cart/add', {
-                method: 'POST',
+            fetch(`http://localhost:3000/api/products/${productId}`, {
+                method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(data)
+                body: JSON.stringify({ stock: newStock })
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.message) {
-                    alert(`Product with ID: ${productId} added to cart with quantity ${quantity}!`);
-                } else {
-                    alert('Error: ' + data.message);
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.statusText} (status code: ${response.status})`);
                 }
+                alert('Product inventory updated successfully!');
+                fetchProducts(); // Refresh product list after update
             })
             .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while adding the product to the cart.');
+                console.error('Error occurred while updating product:', error);
+                alert(`An error occurred while updating the inventory: ${error.message}`);
             });
         }
 
-        // Function to delete a product
-        // Function to delete a product
-function deleteProduct(productId) {
-    const token = localStorage.getItem('token');
-    if (!token) {
-        alert('You must be logged in to delete products.');
-        window.location.href = '/login.html';
-        return;
-    }
+        // Delete product
+        function deleteProduct(productId) {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('You must be logged in to delete products.');
+                window.location.href = '/login.html';
+                return;
+            }
 
-    // Send DELETE request to remove the product
-    fetch(`http://localhost:3000/api/products/${productId}`, {
-        method: 'DELETE',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
+            fetch(`http://localhost:3000/api/products?id=${productId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.statusText} (status code: ${response.status})`);
+                }
+                alert('Product deleted successfully!');
+                fetchProducts(); // Refresh the product list after deletion
+            })
+            .catch(error => {
+                console.error('Error occurred while deleting product:', error);
+                alert(`An error occurred while deleting the product: ${error.message}`);
+            });
         }
-    })
-    .then(response => {
-        if (!response.ok) {
-            // If the response is not ok, throw an error
-            throw new Error(`Error: ${response.statusText} (status code: ${response.status})`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.message) {
-            alert(`Product with ID: ${productId} deleted successfully!`);
-            // Refresh the product list after deletion
-            fetchProducts();
-        } else {
-            alert('Error: ' + data.message);
-        }
-    })
-    .catch(error => {
-        console.error('Error occurred while deleting product:', error);
-        alert(`An error occurred while deleting the product: ${error.message}`);
-    });
-}
-
 
         // Fetch products on page load
         window.onload = fetchProducts;
