@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "razorpay": "^2.9.5",
+    "stripe": "^17.3.1"
+  }
+}

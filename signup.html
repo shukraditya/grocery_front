@@ -133,27 +133,32 @@
                 type: formData.get('type')
             };
 
-            // Send the data to the backend via Fetch API
             fetch('http://localhost:3000/api/auth/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Registration successful!');
-                    window.location.href = '/login'; // Redirect to login page
-                } else {
-                    alert('Error: ' + data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred. Please try again.');
-            });
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+})
+.then(response => response.json())
+.then(data => {
+    // Check for the backend response message
+    if (data.message === 'User created successfully') {
+        alert('Registration successful!');
+        window.location.href = '/login.html'; // Redirect to login page
+    } else if (data.message === 'User already exists') {
+        alert('Error: User already exists. Please try logging in.');
+        window.location.href = '/login.html';
+    } else {
+        alert('Error: ' + data.message); // Handle other errors or unexpected responses
+    }
+})
+.catch(error => {
+    console.error('Error:', error);
+    alert('An error occurred. Please try again.');
+});
+
+
         });
     </script>
 </body>

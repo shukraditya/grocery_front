@@ -1,77 +1,110 @@
-       /* Basic reset for body */
-       body {
-        font-family: Arial, sans-serif;
-        background-color: #f4f4f9;
-        margin: 0;
-        padding: 0;
-    }
+/* Basic reset for body */
+body {
+    font-family: 'Roboto', sans-serif;  /* Modern and clean font */
+    background: linear-gradient(135deg, #a8e6cf 0%, #d4f1f4 100%); /* Light gradient for a fresh feel */
+    margin: 0;
+    padding: 0;
+    color: #333;  /* Dark gray for general text */
+}
 
-    /* Center the container and set max width */
+/* Center the container and set max width */
+.container {
+    width: 100%;
+    max-width: 600px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: #ffffff;  /* White background for the form area */
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);  /* Soft shadow for the container */
+    box-sizing: border-box;
+}
+
+/* Header styles */
+h1 {
+    text-align: center;
+    font-size: 28px;
+    margin-bottom: 20px;
+    color: #2c3e50;  /* Darker shade for title */
+    font-weight: 600;  /* Slightly bold for emphasis */
+}
+
+/* Style the form labels and inputs */
+label {
+    font-size: 16px;
+    color: #555;  /* Subtle gray for label text */
+    margin-bottom: 8px;
+    display: block;
+}
+
+input, textarea {
+    width: 100%;
+    padding: 14px;
+    margin: 8px 0 16px 0;
+    border: 1px solid #ddd;  /* Light border color for inputs */
+    border-radius: 6px;
+    font-size: 16px;
+    box-sizing: border-box;
+    background-color: #f9f9f9;  /* Light background for inputs */
+}
+
+textarea {
+    resize: vertical;
+}
+
+/* Button styling */
+button {
+    width: 100%;
+    padding: 14px;
+    background-color: #4CAF50;  /* Fresh green for the main button */
+    color: white;
+    font-size: 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);  /* Soft shadow for the button */
+}
+
+button:hover {
+    background-color: #45a049;  /* Darker green on hover */
+}
+
+/* Style for error and success messages */
+p {
+    text-align: center;
+    font-size: 14px;
+    color: #555;
+}
+
+/* Add responsiveness */
+@media (max-width: 480px) {
     .container {
-        width: 100%;
-        max-width: 600px;
-        margin: 50px auto;
-        padding: 20px;
-        background-color: #ffffff;
-        border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        width: 90%;
     }
+}
 
-    h1 {
-        text-align: center;
-        font-size: 28px;
-        margin-bottom: 20px;
-        color: #333;
-    }
+/* Focused states for input and text areas */
+input:focus, textarea:focus {
+    border-color: #007BFF;  /* Blue border on focus */
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);  /* Soft blue glow */
+}
 
-    /* Style the form labels and inputs */
-    label {
-        font-size: 16px;
-        color: #555;
-        margin-bottom: 8px;
-        display: block;
-    }
+/* Adding a subtle textured background */
+body::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('https://www.transparenttextures.com/patterns/old-wall-2.png');  /* Subtle background texture */
+    z-index: -1;
+}
 
-    input, textarea {
-        width: 100%;
-        padding: 12px;
-        margin: 8px 0 16px 0;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        font-size: 16px;
-        box-sizing: border-box;
-    }
+/* Style for labels */
+label {
+    font-weight: bold;
+    color: #333;  /* Slightly darker for readability */
+}
 
-    textarea {
-        resize: vertical;
-    }
-
-    button {
-        width: 100%;
-        padding: 12px;
-        background-color: #007BFF;
-        color: white;
-        font-size: 16px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-    }
-
-    button:hover {
-        background-color: #0056b3;
-    }
-
-    /* Style the error and success messages */
-    p {
-        text-align: center;
-        font-size: 14px;
-        color: #555;
-    }
-
-    /* Add responsiveness */
-    @media (max-width: 480px) {
-        .container {
-            width: 90%;
-        }
-    }
+/* The overall form looks clean with fresh accents */

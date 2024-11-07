@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            text-align: center;
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+
+        .button {
+            display: block;
+            width: 100%;
+            max-width: 300px;
+            padding: 15px;
+            margin: 10px auto;
+            background-color: #007BFF;
+            color: white;
+            font-size: 18px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .button:hover {
+            background-color: #0056b3;
+        }
+
+        .logout-btn {
+            background-color: #e74c3c;
+        }
+
+        .logout-btn:hover {
+            background-color: #c0392b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome, Admin!</h1>
+        <p>Choose an option to proceed:</p>
+        <button class="button" onclick="window.location.href='/manage-users.html'">Manage Non-Admin Users</button>
+        <button class="button" onclick="window.location.href='/manage-products.html'">Manage Products</button>
+        <button class="button logout-btn" onclick="logout()">Logout</button>
+    </div>
+
+    <script>
+        // Check if the user is logged in as an admin
+        window.onload = function() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('You must be logged in as an admin!');
+                window.location.href = '/login.html'; // Redirect to login if no token is found
+            }
+            // Optionally, add an API check for the token's validity
+        };
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/login.html'; // Redirect to login page after logout
+        }
+    </script>
+</body>
+</html>

@@ -136,7 +136,13 @@
                     // Store token in local storage or session, then redirect
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('userType', data.userType);
-                    window.location.href = '/product.html';
+                    console.log(data.userType);
+                    if(data.userType=='admin'){
+                        window.location.href = '/dashboard.html'
+                    }else{
+                        window.location.href = '/product.html';
+                    }
+                    
                 } else {
                     alert('Error: ' + data.message);
                 }
