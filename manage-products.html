@@ -17,7 +17,7 @@
             margin-top: 20px;
         }
 
-        .cart-button, .add-product-button {
+        .cart-button {
             position: fixed;
             top: 20px;
             right: 20px;
@@ -31,7 +31,7 @@
             transition: background-color 0.3s ease;
         }
 
-        .cart-button:hover, .add-product-button:hover {
+        .cart-button:hover {
             background-color: #0056b3;
         }
 
@@ -48,6 +48,7 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             overflow: hidden;
             padding: 20px;
+            position: relative; /* For positioning the delete button */
             transition: transform 0.3s ease-in-out;
         }
 
@@ -71,15 +72,6 @@
             color: #555;
         }
 
-        .product input {
-            width: 60px;
-            padding: 5px;
-            margin-right: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-
         .product button {
             background-color: #007BFF;
             color: white;
@@ -94,16 +86,40 @@
         .product button:hover {
             background-color: #0056b3;
         }
+
+        /* Bin Icon (Delete button) */
+        .delete-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 1.5em;
+            color: #d9534f;
+            transition: color 0.3s ease;
+        }
+
+        .delete-btn:hover {
+            color: #c9302c;
+        }
+
+        /* Quantity Input */
+        .quantity-input {
+            width: 60px;
+            padding: 5px;
+            margin-top: 10px;
+            font-size: 1em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
     <!-- Cart Button -->
     <button class="cart-button" onclick="window.location.href='cart.html'">Go to Cart</button>
 
-    <!-- Add Product Button -->
-    <button class="add-product-button" onclick="window.location.href='add-products.html'">Add Product</button>
-
-    <h1>Product Management</h1>
+    <h1>Product List</h1>
     <div id="productContainer"></div>
 
     <script>
@@ -151,6 +167,19 @@
             products.forEach(product => {
                 const productDiv = document.createElement('div');
                 productDiv.classList.add('product');
+                
+                // Create the delete button (bin icon)
+                const deleteButton = document.createElement('button');
+                deleteButton.classList.add('delete-btn');
+                deleteButton.innerHTML = '&#128465;'; // Unicode for the bin icon
+                deleteButton.onclick = () => deleteProduct(product._id); // Bind delete functionality
+
+                // Add quantity input field
+                const quantityInput = document.createElement('input');
+                quantityInput.type = 'number';
+                quantityInput.classList.add('quantity-input');
+                quantityInput.value = 1;
+                quantityInput.id = `quantity-${product._id}`;
 
                 productDiv.innerHTML = `
                     <img src="${product.imageUrl}" alt="${product.name}">
@@ -159,62 +188,103 @@
                     <p>Price: $${product.price}</p>
                     <p>Category: ${product.category}</p>
                     <p>Stock: ${product.stock}</p>
-                    <div>
-                        <input type="number" id="quantity-${product._id}" value="0" min="1" max="100">
-                        <button onclick="addToCart('${product._id}')">Add to inventory</button>
-                    </div>
                 `;
+                
+                // Append the quantity input and delete button to the product div
+                productDiv.appendChild(quantityInput);
+                productDiv.appendChild(deleteButton);
+
+                // Add "Add to Cart" button
+                const addToCartButton = document.createElement('button');
+                addToCartButton.innerText = 'Add to Cart';
+                addToCartButton.onclick = () => addToCart(product._id);
+                productDiv.appendChild(addToCartButton);
+
                 container.appendChild(productDiv);
             });
         }
 
-        // Function to handle adding to cart with quantity
-        // Function to handle adding to cart with quantity
-function addToCart(productId) {
-    // Get the quantity from the input field
-    const quantityInput = document.getElementById(`quantity-${productId}`);
-    const quantity = quantityInput ? quantityInput.value : 1; // Default to 1 if not found
+        // Function to handle adding to cart (for demonstration purposes)
+        function addToCart(productId) {
+            const quantityInput = document.getElementById(`quantity-${productId}`);
+            const quantity = quantityInput ? quantityInput.value : 1; // Default to 1 if not found
 
-    // Validate quantity
-    if (!quantity || quantity <= 0) {
-        alert('Please enter a valid quantity.');
-        return;
-    }
+            if (!quantity || quantity <= 0) {
+                alert('Please enter a valid quantity.');
+                return;
+            }
 
-    // Data to be sent in the request
-    const data = {
-        productId: productId,
-        quantity: parseInt(quantity) // Ensure quantity is an integer
-    };
+            const data = {
+                productId: productId,
+                quantity: parseInt(quantity) 
+            };
 
-    // Get the token from localStorage (for authorization)
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('You must be logged in to add items to the cart.');
+                window.location.href = '/login.html'; 
+                return;
+            }
+
+            fetch('http://localhost:3000/api/cart/add', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    alert(`Product with ID: ${productId} added to cart with quantity ${quantity}!`);
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while adding the product to the cart.');
+            });
+        }
+
+        // Function to delete a product
+        // Function to delete a product
+function deleteProduct(productId) {
     const token = localStorage.getItem('token');
     if (!token) {
-        alert('You must be logged in to add items to the cart.');
-        window.location.href = '/login.html'; // Redirect to login page if no token
+        alert('You must be logged in to delete products.');
+        window.location.href = '/login.html';
         return;
     }
 
-    // Send POST request to add product to the cart
-    fetch('http://localhost:3000/api/cart/add', {
-        method: 'POST',
+    // Send DELETE request to remove the product
+    fetch(`http://localhost:3000/api/products/${productId}`, {
+        method: 'DELETE',
         headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
+        }
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            // If the response is not ok, throw an error
+            throw new Error(`Error: ${response.statusText} (status code: ${response.status})`);
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.message) {
-            alert(`Product with ID: ${productId} added to cart with quantity ${quantity}!`);
+            alert(`Product with ID: ${productId} deleted successfully!`);
+            // Refresh the product list after deletion
+            fetchProducts();
         } else {
             alert('Error: ' + data.message);
         }
     })
     .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred while adding the product to the cart.');
+        console.error('Error occurred while deleting product:', error);
+        alert(`An error occurred while deleting the product: ${error.message}`);
     });
 }
 
