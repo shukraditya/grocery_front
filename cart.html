@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Cart</title>
+    <style>
+        /* Basic reset for body */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Container for the cart */
+        .cart-container {
+            width: 80%;
+            max-width: 1200px;
+            margin: 50px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 32px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 10px;
+        }
+
+        .cart-item img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .cart-item-info {
+            flex-grow: 1;
+            margin-left: 20px;
+        }
+
+        .cart-item-info h3 {
+            margin: 0;
+            font-size: 18px;
+            color: #333;
+        }
+
+        .cart-item-info p {
+            margin: 5px 0;
+            color: #777;
+        }
+
+        .cart-item-price,
+        .cart-item-quantity {
+            font-size: 16px;
+            color: #333;
+        }
+
+        .total-price {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007BFF;
+            text-align: right;
+            margin-top: 20px;
+        }
+
+        .cart-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            background-color: #007BFF;
+            color: white;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="cart-container">
+        <h1>Your Cart</h1>
+        <div id="cartItemsContainer"></div>
+        <div class="cart-footer">
+            <div class="total-price" id="totalPrice">Total: $0.00</div>
+            <button class="btn" id="checkoutButton">Proceed to Checkout</button>
+        </div>
+    </div>
+
+    <script>
+        // Function to fetch and display cart items
+        function fetchCart() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Please log in to view your cart.');
+                window.location.href = '/login.html';
+                return;
+            }
+
+            fetch('http://localhost:3000/api/cart', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.items && Array.isArray(data.items)) {
+                    displayCartItems(data.items);
+                    calculateTotal(data.items);
+                } else {
+                    document.getElementById('cartItemsContainer').innerHTML = '<p>Your cart is empty.</p>';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while fetching your cart.');
+            });
+        }
+
+        // Function to display cart items
+        function displayCartItems(items) {
+            const container = document.getElementById('cartItemsContainer');
+            container.innerHTML = ''; // Clear the container before adding items
+
+            items.forEach(item => {
+                const product = item.product;
+                const quantity = item.quantity;
+                const itemTotal = product.price * quantity;
+
+                const itemDiv = document.createElement('div');
+                itemDiv.classList.add('cart-item');
+                itemDiv.innerHTML = `
+                    <img src="${product.imageUrl}" alt="${product.name}">
+                    <div class="cart-item-info">
+                        <h3>${product.name}</h3>
+                        <p>${product.description}</p>
+                        <p class="cart-item-price">Price: $${product.price.toFixed(2)}</p>
+                        <p class="cart-item-quantity">Quantity: ${quantity}</p>
+                    </div>
+                    <div class="cart-item-total">
+                        <p>Total: $${itemTotal.toFixed(2)}</p>
+                    </div>
+                `;
+                container.appendChild(itemDiv);
+            });
+        }
+
+        // Function to calculate the total price of all items in the cart
+        function calculateTotal(items) {
+            const totalPriceElement = document.getElementById('totalPrice');
+            const total = items.reduce((sum, item) => {
+                return sum + (item.product.price * item.quantity);
+            }, 0);
+            totalPriceElement.textContent = `Total: $${total.toFixed(2)}`;
+        }
+
+        // Proceed to checkout (button functionality)
+        document.getElementById('checkoutButton').addEventListener('click', function() {
+            alert('Proceeding to checkout...');
+            // Implement checkout functionality here (e.g., redirect to checkout page)
+        });
+
+        // Fetch the cart when the page loads
+        window.onload = fetchCart;
+    </script>
+</body>
+</html>
