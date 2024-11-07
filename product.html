@@ -17,7 +17,6 @@
             margin-top: 20px;
         }
 
-        
         .cart-button {
             position: fixed;
             top: 20px;
@@ -86,6 +85,16 @@
         .product button:hover {
             background-color: #0056b3;
         }
+
+        /* Quantity Input */
+        .quantity-input {
+            width: 60px;
+            padding: 5px;
+            margin-top: 10px;
+            font-size: 1em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -141,36 +150,55 @@
                 const productDiv = document.createElement('div');
                 productDiv.classList.add('product');
 
+                // Add quantity input field
+                const quantityInput = document.createElement('input');
+                quantityInput.type = 'number';
+                quantityInput.classList.add('quantity-input');
+                quantityInput.value = 1; // Default quantity
+                quantityInput.id = `quantity-${product._id}`;
+
                 productDiv.innerHTML = `
-                    <img src="${product.imageUrl}" alt="${product.name}">
+                    <img src="${product.imageUrl}" alt="${product.name}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px;">
                     <h3>${product.name}</h3>
                     <p>${product.description}</p>
                     <p>Price: $${product.price}</p>
                     <p>Category: ${product.category}</p>
                     <p>Stock: ${product.stock}</p>
-                    <button onclick="addToCart('${product._id}')">Add to Cart</button>
                 `;
+
+                // Append the quantity input and add to cart button to the product div
+                productDiv.appendChild(quantityInput);
+                const addToCartButton = document.createElement('button');
+                addToCartButton.innerText = 'Add to Cart';
+                addToCartButton.onclick = () => addToCart(product._id);
+                productDiv.appendChild(addToCartButton);
+
                 container.appendChild(productDiv);
             });
         }
 
-        // Function to handle adding to cart (for demonstration purposes)
+        // Function to handle adding to cart
         function addToCart(productId) {
-            // Data to be sent in the request
-            const data = {
-                productId: productId,
-                quantity: 1
-            };
+            const quantityInput = document.getElementById(`quantity-${productId}`);
+            const quantity = quantityInput ? quantityInput.value : 1; // Default to 1 if not found
 
-            // Get the token from localStorage (for authorization)
-            const token = localStorage.getItem('token');
-            if (!token) {
-                alert('You must be logged in to add items to the cart.');
-                window.location.href = '/login.html'; // Redirect to login page if no token
+            if (!quantity || quantity <= 0) {
+                alert('Please enter a valid quantity.');
                 return;
             }
 
-            // Send POST request to add product to the cart
+            const data = {
+                productId: productId,
+                quantity: parseInt(quantity) // Ensure quantity is an integer
+            };
+
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('You must be logged in to add items to the cart.');
+                window.location.href = '/login.html'; 
+                return;
+            }
+
             fetch('http://localhost:3000/api/cart/add', {
                 method: 'POST',
                 headers: {
@@ -181,7 +209,6 @@
             })
             .then(response => response.json())
             .then(data => {
-                console.log(data)
                 if (data.message) {
                     alert(`Product with ID: ${productId} added to cart successfully!`);
                 } else {

@@ -104,7 +104,6 @@
         <div id="cartItemsContainer"></div>
         <div class="cart-footer">
             <div class="total-price" id="totalPrice">Total: $0.00</div>
-            <button class="btn" id="checkoutButton">Proceed to Checkout</button>
         </div>
     </div>
 
@@ -125,8 +124,15 @@
                     'Content-Type': 'application/json'
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    console.error("Failed to fetch cart:", response.status);
+                    throw new Error('Failed to fetch cart');
+                }
+                return response.json();
+            })
             .then(data => {
+                console.log('Cart data received:', data); // Log cart data
                 if (data.items && Array.isArray(data.items)) {
                     displayCartItems(data.items);
                     calculateTotal(data.items);
@@ -141,47 +147,62 @@
         }
 
         // Function to display cart items
-        function displayCartItems(items) {
-            const container = document.getElementById('cartItemsContainer');
-            container.innerHTML = ''; // Clear the container before adding items
+        // Function to display cart items
+function displayCartItems(items) {
+    const container = document.getElementById('cartItemsContainer');
+    container.innerHTML = ''; // Clear any previous content
 
-            items.forEach(item => {
-                const product = item.product;
-                const quantity = item.quantity;
-                const itemTotal = product.price * quantity;
+    if (items.length === 0) {
+        container.innerHTML = '<p>Your cart is empty.</p>';
+        return;
+    }
 
-                const itemDiv = document.createElement('div');
-                itemDiv.classList.add('cart-item');
-                itemDiv.innerHTML = `
-                    <img src="${product.imageUrl}" alt="${product.name}">
-                    <div class="cart-item-info">
-                        <h3>${product.name}</h3>
-                        <p>${product.description}</p>
-                        <p class="cart-item-price">Price: $${product.price.toFixed(2)}</p>
-                        <p class="cart-item-quantity">Quantity: ${quantity}</p>
-                    </div>
-                    <div class="cart-item-total">
-                        <p>Total: $${itemTotal.toFixed(2)}</p>
-                    </div>
-                `;
-                container.appendChild(itemDiv);
-            });
+    items.forEach(item => {
+        const product = item.product;
+
+        // Check if product is not null
+        if (product) {
+            const quantity = item.quantity;
+            const itemTotal = product.price * quantity;
+
+            const itemDiv = document.createElement('div');
+            itemDiv.classList.add('cart-item');
+            itemDiv.innerHTML = `
+                <div class="cart-item-info">
+                    <h3>${product.name}</h3>
+                    <p class="cart-item-price">Price: $${product.price.toFixed(2)}</p>
+                    <p class="cart-item-quantity">Quantity: ${quantity}</p>
+                </div>
+                <div class="cart-item-total">
+                    <p>Total: $${itemTotal.toFixed(2)}</p>
+                </div>
+            `;
+            container.appendChild(itemDiv);
+        } else {
+            // Handle case where the product is null
+            const itemDiv = document.createElement('div');
+            itemDiv.classList.add('cart-item');
+            itemDiv.innerHTML = `
+                <p>Product details are missing.</p>
+            `;
+            container.appendChild(itemDiv);
         }
+    });
+}
+function calculateTotal(items) {
+    const totalPriceElement = document.getElementById('totalPrice');
+    const total = items.reduce((sum, item) => {
+        // Ensure that price and quantity are numbers
+        const itemPrice = parseFloat(item.product.price) || 0;
+        const itemQuantity = parseInt(item.quantity) || 0;
+        return sum + (itemPrice * itemQuantity);
+    }, 0);
+    console.log('Total Price:', total);  // Debug log for the total calculation
+    totalPriceElement.textContent = `Total: $${total.toFixed(2)}`;
+}
 
-        // Function to calculate the total price of all items in the cart
-        function calculateTotal(items) {
-            const totalPriceElement = document.getElementById('totalPrice');
-            const total = items.reduce((sum, item) => {
-                return sum + (item.product.price * item.quantity);
-            }, 0);
-            totalPriceElement.textContent = `Total: $${total.toFixed(2)}`;
-        }
 
-        // Proceed to checkout (button functionality)
-        document.getElementById('checkoutButton').addEventListener('click', function() {
-            alert('Proceeding to checkout...');
-            // Implement checkout functionality here (e.g., redirect to checkout page)
-        });
+
 
         // Fetch the cart when the page loads
         window.onload = fetchCart;

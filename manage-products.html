@@ -17,8 +17,7 @@
             margin-top: 20px;
         }
 
-        /* Add Product Button */
-        .add-product-button {
+        .add-button {
             position: fixed;
             top: 20px;
             right: 20px;
@@ -32,7 +31,7 @@
             transition: background-color 0.3s ease;
         }
 
-        .add-product-button:hover {
+        .add-button:hover {
             background-color: #218838;
         }
 
@@ -72,7 +71,22 @@
             color: #555;
         }
 
-        /* Bin Icon */
+        .product button {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+        }
+
+        .product button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Bin Icon (Delete button) */
         .delete-btn {
             position: absolute;
             top: 10px;
@@ -93,6 +107,7 @@
         .quantity-input {
             width: 60px;
             padding: 5px;
+            margin-top: 10px;
             font-size: 1em;
             border: 1px solid #ccc;
             border-radius: 4px;
@@ -100,138 +115,100 @@
     </style>
 </head>
 <body>
-    <!-- Add Product Button -->
-    <button class="add-product-button" onclick="window.location.href='addproducts.html'">Add Product</button>
+    <!-- Button to Add New Products -->
+    <button class="add-button" onclick="window.location.href='addproducts.html'">Add New Product</button>
 
     <h1>Manage Products</h1>
     <div id="productContainer"></div>
 
     <script>
-        // Fetch products from the server
-        function fetchProducts() {
+        // Function to fetch products
+        async function fetchProducts() {
             const token = localStorage.getItem('token');
-
             if (!token) {
                 alert('Please log in first!');
                 window.location.href = '/login';
                 return;
             }
 
-            fetch('http://localhost:3000/api/products', {
+            const response = await fetch('http://localhost:3000/api/products', {
                 method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data && Array.isArray(data)) {
-                    displayProducts(data);
-                } else {
-                    alert('No products found or an error occurred.');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while fetching products.');
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
             });
+            const products = await response.json();
+            displayProducts(products);
         }
 
-        // Display products with delete and update options
+        // Function to display products
         function displayProducts(products) {
             const container = document.getElementById('productContainer');
             container.innerHTML = '';
-
-            if (products.length === 0) {
-                container.innerHTML = '<p>No products available.</p>';
-                return;
-            }
-
             products.forEach(product => {
                 const productDiv = document.createElement('div');
                 productDiv.classList.add('product');
-
-                // Delete button
-                const deleteButton = document.createElement('button');
-                deleteButton.classList.add('delete-btn');
-                deleteButton.innerHTML = `
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M3 6l3 16h12l3-16h-18zm3 4h2v10h-2v-10zm4 0h2v10h-2v-10zm4 0h2v10h-2v-10zm4-8v2h-16v-2h5.5l1-1h7l1 1h5.5z"/>
-                    </svg>
-                `;
-                deleteButton.onclick = () => deleteProduct(product._id);
-
-                // Product details
-                productDiv.innerHTML = `
-                    <img src="${product.imageUrl}" alt="${product.name}">
-                    <h3>${product.name}</h3>
-                    <p>${product.description}</p>
-                    <p>Price: $${product.price}</p>
-                    <p>Category: ${product.category}</p>
-                    <p>Current Stock: ${product.stock}</p>
-                `;
-
-                // Quantity input
+                
+                // Quantity input for adding stock
                 const quantityInput = document.createElement('input');
                 quantityInput.type = 'number';
                 quantityInput.classList.add('quantity-input');
-                quantityInput.value = product.stock;
-                quantityInput.id = `quantity-${product._id}`;
+                quantityInput.value = 0; // Default to 0
 
-                // Update button
-                const updateButton = document.createElement('button');
-                updateButton.innerText = 'Update Inventory';
-                updateButton.onclick = () => updateProduct(product._id);
+                // Add HTML content for each product
+                productDiv.innerHTML = `
+                    <img src="${product.imageUrl}" alt="${product.name}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 10px;">
+                    <p>Description: ${product.description}</p>
+                    <p>Price: $${product.price}</p>
+                    <p>Category: ${product.category}</p>
+                    <p>Current Stock: <span id="stock-${product._id}">${product.stock}</span></p>
+                `;
 
-                // Append elements
+                // Create add stock button
+                const addStockButton = document.createElement('button');
+                addStockButton.innerText = 'Add Stock';
+                addStockButton.onclick = () => addToInventory(product._id, quantityInput.value);
+
+                // Append quantity input and add stock button
                 productDiv.appendChild(quantityInput);
-                productDiv.appendChild(updateButton);
+                productDiv.appendChild(addStockButton);
+
+                // Create delete button (bin icon)
+                const deleteButton = document.createElement('button');
+                deleteButton.classList.add('delete-btn');
+                deleteButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6zm2 3h14v11c0 1.1-.9 2-2 2H7c-1.1 0-2-.9-2-2V9zm3 2v8h2v-8H8zm4 0v8h2v-8h-2zm4 0v8h2v-8h-2zm1-7h-5l-.5-.5H9l-.5.5H4v2h16V4h-4z"/></svg>';
+                deleteButton.onclick = () => deleteProduct(product._id);
+
+                // Append delete button to product div
                 productDiv.appendChild(deleteButton);
+
                 container.appendChild(productDiv);
             });
         }
 
-        // Update product inventory
-        function updateProduct(productId) {
-            const quantityInput = document.getElementById(`quantity-${productId}`);
-            const newStock = parseInt(quantityInput.value);
-
-            if (isNaN(newStock) || newStock < 0) {
-                alert('Please enter a valid stock quantity.');
-                return;
-            }
-
+        // Function to add stock to inventory
+        async function addToInventory(productId, addQuantity) {
             const token = localStorage.getItem('token');
-            if (!token) {
-                alert('You must be logged in to update inventory.');
-                window.location.href = '/login.html';
-                return;
-            }
+            const currentStockElement = document.getElementById(`stock-${productId}`);
+            const currentStock = parseInt(currentStockElement.innerText) || 0;
+            const newStock = currentStock + parseInt(addQuantity);
 
-            fetch(`http://localhost:3000/api/products/${productId}`, {
+            const data = { stock: newStock };
+
+            const response = await fetch(`http://localhost:3000/api/products/${productId}`, {
                 method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ stock: newStock })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Error: ${response.statusText} (status code: ${response.status})`);
-                }
-                alert('Product inventory updated successfully!');
-                fetchProducts(); // Refresh product list after update
-            })
-            .catch(error => {
-                console.error('Error occurred while updating product:', error);
-                alert(`An error occurred while updating the inventory: ${error.message}`);
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
             });
+            
+            if (response.ok) {
+                currentStockElement.innerText = newStock;  // Update the displayed stock
+                alert(`Added ${addQuantity} items. New stock: ${newStock}`);
+            } else {
+                alert('Error updating stock.');
+            }
         }
 
-        // Delete product
-        function deleteProduct(productId) {
+        // Function to delete a product
+        async function deleteProduct(productId) {
             const token = localStorage.getItem('token');
             if (!token) {
                 alert('You must be logged in to delete products.');
@@ -239,24 +216,22 @@
                 return;
             }
 
-            fetch(`http://localhost:3000/api/products?id=${productId}`, {
+            // Send DELETE request to remove the product
+            const response = await fetch(`http://localhost:3000/api/products?id=${productId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Error: ${response.statusText} (status code: ${response.status})`);
-                }
-                alert('Product deleted successfully!');
-                fetchProducts(); // Refresh the product list after deletion
-            })
-            .catch(error => {
-                console.error('Error occurred while deleting product:', error);
-                alert(`An error occurred while deleting the product: ${error.message}`);
             });
+            
+            if (response.ok) {
+                alert(`Product with ID: ${productId} deleted successfully!`);
+                fetchProducts(); // Refresh the product list after deletion
+            } else {
+                const errorData = await response.json();
+                alert(`An error occurred: ${errorData.message || response.statusText}`);
+            }
         }
 
         // Fetch products on page load
