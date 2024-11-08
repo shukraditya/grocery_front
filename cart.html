@@ -96,6 +96,12 @@
         .btn:hover {
             background-color: #0056b3;
         }
+
+        /* Add a container for the checkout button */
+        .checkout-btn {
+            text-align: center;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -104,6 +110,11 @@
         <div id="cartItemsContainer"></div>
         <div class="cart-footer">
             <div class="total-price" id="totalPrice">Total: $0.00</div>
+        </div>
+
+        <!-- Checkout Button -->
+        <div class="checkout-btn">
+            <button class="btn" id="checkoutButton">Proceed to Checkout</button>
         </div>
     </div>
 
@@ -147,62 +158,64 @@
         }
 
         // Function to display cart items
-        // Function to display cart items
-function displayCartItems(items) {
-    const container = document.getElementById('cartItemsContainer');
-    container.innerHTML = ''; // Clear any previous content
+        function displayCartItems(items) {
+            const container = document.getElementById('cartItemsContainer');
+            container.innerHTML = ''; // Clear any previous content
 
-    if (items.length === 0) {
-        container.innerHTML = '<p>Your cart is empty.</p>';
-        return;
-    }
+            if (items.length === 0) {
+                container.innerHTML = '<p>Your cart is empty.</p>';
+                return;
+            }
 
-    items.forEach(item => {
-        const product = item.product;
+            items.forEach(item => {
+                const product = item.product;
 
-        // Check if product is not null
-        if (product) {
-            const quantity = item.quantity;
-            const itemTotal = product.price * quantity;
+                // Check if product is not null
+                if (product) {
+                    const quantity = item.quantity;
+                    const itemTotal = product.price * quantity;
 
-            const itemDiv = document.createElement('div');
-            itemDiv.classList.add('cart-item');
-            itemDiv.innerHTML = `
-                <div class="cart-item-info">
-                    <h3>${product.name}</h3>
-                    <p class="cart-item-price">Price: $${product.price.toFixed(2)}</p>
-                    <p class="cart-item-quantity">Quantity: ${quantity}</p>
-                </div>
-                <div class="cart-item-total">
-                    <p>Total: $${itemTotal.toFixed(2)}</p>
-                </div>
-            `;
-            container.appendChild(itemDiv);
-        } else {
-            // Handle case where the product is null
-            const itemDiv = document.createElement('div');
-            itemDiv.classList.add('cart-item');
-            itemDiv.innerHTML = `
-                <p>Product details are missing.</p>
-            `;
-            container.appendChild(itemDiv);
+                    const itemDiv = document.createElement('div');
+                    itemDiv.classList.add('cart-item');
+                    itemDiv.innerHTML = `
+                        <div class="cart-item-info">
+                            <h3>${product.name}</h3>
+                            <p class="cart-item-price">Price: $${product.price.toFixed(2)}</p>
+                            <p class="cart-item-quantity">Quantity: ${quantity}</p>
+                        </div>
+                        <div class="cart-item-total">
+                            <p>Total: $${itemTotal.toFixed(2)}</p>
+                        </div>
+                    `;
+                    container.appendChild(itemDiv);
+                } else {
+                    // Handle case where the product is null
+                    const itemDiv = document.createElement('div');
+                    itemDiv.classList.add('cart-item');
+                    itemDiv.innerHTML = `
+                        <p>Product details are missing.</p>
+                    `;
+                    container.appendChild(itemDiv);
+                }
+            });
         }
-    });
-}
-function calculateTotal(items) {
-    const totalPriceElement = document.getElementById('totalPrice');
-    const total = items.reduce((sum, item) => {
-        // Ensure that price and quantity are numbers
-        const itemPrice = parseFloat(item.product.price) || 0;
-        const itemQuantity = parseInt(item.quantity) || 0;
-        return sum + (itemPrice * itemQuantity);
-    }, 0);
-    console.log('Total Price:', total);  // Debug log for the total calculation
-    totalPriceElement.textContent = `Total: $${total.toFixed(2)}`;
-}
 
+        function calculateTotal(items) {
+            const totalPriceElement = document.getElementById('totalPrice');
+            const total = items.reduce((sum, item) => {
+                // Ensure that price and quantity are numbers
+                const itemPrice = parseFloat(item.product.price) || 0;
+                const itemQuantity = parseInt(item.quantity) || 0;
+                return sum + (itemPrice * itemQuantity);
+            }, 0);
+            console.log('Total Price:', total);  // Debug log for the total calculation
+            totalPriceElement.textContent = `Total: $${total.toFixed(2)}`;
+        }
 
-
+        // Checkout button redirect
+        document.getElementById('checkoutButton').addEventListener('click', () => {
+            window.location.href = 'payment.html'; // Redirect to payment page
+        });
 
         // Fetch the cart when the page loads
         window.onload = fetchCart;

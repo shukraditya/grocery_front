@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Order with OpenStreetMap</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        .order-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .order-details {
+            margin-bottom: 20px;
+        }
+        #map {
+            height: 400px;
+            width: 100%;
+            border-radius: 8px;
+        }
+    </style>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+</head>
+<body>
+    <div class="order-container">
+        <!-- Order details section -->
+        <div class="order-details">
+            <h2>Order Tracking</h2>
+            <p><strong>Order Number:</strong> #123456</p>
+            <p><strong>Order Items:</strong></p>
+            <ul>
+                <li>Item 1: Product Name</li>
+                <li>Item 2: Product Name</li>
+                <li>Item 3: Product Name</li>
+            </ul>
+        </div>
+
+        <!-- Map section -->
+        <div id="map"></div>
+
+        <!-- Estimated time of delivery -->
+        <p><strong>Estimated Delivery Time:</strong> <span id="delivery-time">Calculating...</span></p>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        // Coordinates for source and destination (Example coordinates)
+        const sourceCoords = [40.7128, -74.0060];  // New York City
+        const destinationCoords = [40.73061, -73.935242];  // Nearby destination
+
+        // Initialize the map
+        const map = L.map('map').setView(sourceCoords, 12);
+
+        // Set up OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Add markers for source and destination
+        const sourceMarker = L.marker(sourceCoords).addTo(map)
+            .bindPopup('Pickup Location')
+            .openPopup();
+
+        const destinationMarker = L.marker(destinationCoords).addTo(map)
+            .bindPopup('Destination Location');
+
+        // Draw a line between the two points
+        const routeLine = L.polyline([sourceCoords, destinationCoords], { color: 'blue' }).addTo(map);
+
+        // Estimate a delivery time based on a basic assumptio

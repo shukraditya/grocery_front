@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #f4f4f4; }
+        canvas { display: block; }
+
+        /* Payment Component Styles */
+        .payment-container {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .payment-container h2 {
+            margin-bottom: 15px;
+        }
+
+        .payment-button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 18px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+
+        .payment-button:active {
+            background-color: #45a049;
+        }
+
+        /* Input Styles */
+        .payment-input {
+            margin: 10px;
+            padding: 10px;
+            font-size: 16px;
+            width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fff;
+        }
+
+        #payment-status {
+            position: absolute;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 20px;
+            color: green;
+            display: none;
+        }
+
+        /* Hide UPI fields by default */
+        .upi-fields, .card-fields {
+            display: none;
+        }
+
+    </style>
+</head>
+<body>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.137.5/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.137.5/examples/js/loaders/FBXLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.137.5/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.137.5/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+        // Scene setup
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Add lighting to the scene
+        const light = new THREE.PointLight(0xFFFFFF, 1, 100);
+        light.position.set(10, 10, 10);
+        scene.add(light);
+
+        // Camera position
+        camera.position.z = 5;
+
+        // OrbitControls setup
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+        // Load the .fbx model of the dollar bill (make sure you have the correct URL)
+        const loader = new THREE.FBXLoader();
+        loader.load('DollarBill.fbx', function(fbx) {
+            // Scale and position the 3D dollar bill model
+            fbx.scale.set(3, 3, 3); // Adjust scale as necessary
+            fbx.position.set(3, 2, -5);  // Adjust the position to place it in the corner
+
+            // Add the dollar bill to the scene
+            scene.add(fbx);
+
+            // Optionally, you can rotate the model if needed
+            fbx.rotation.x = -Math.PI / 4;
+            fbx.rotation.y = -Math.PI / 4;
+
+            // Animation loop
+            function animate() {
+                requestAnimationFrame(animate);
+                controls.update();
+                renderer.render(scene, camera);
+            }
+
+            animate();
+        }, undefined, function(error) {
+            console.error(error); // Handle loading errors
+        });
+
+        // Resize the renderer on window resize
+        window.addEventListener('resize', () => {
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+        });
+
+        // Payment Component Logic
+        // Payment container
+        const paymentContainer = document.createElement('div');
+        paymentContainer.classList.add('payment-container');
+        paymentContainer.innerHTML = `
+            <h2>Payment Gateway</h2>
+            <select id="payment-method" class="payment-input">
+                <option value="card">Credit Card</option>
+                <option value="upi">UPI</option>
+            </select>
+
+            <div class="card-fields">
+                <input type="text" id="card-number" class="payment-input" placeholder="Card Number">
+                <input type="text" id="card-expiry" class="payment-input" placeholder="Expiry Date (MM/YY)">
+                <input type="text" id="card-cvc" class="payment-input" placeholder="CVC">
+            </div>
+
+            <div class="upi-fields">
+                <input type="text" id="upi-id" class="payment-input" placeholder="Enter UPI ID">
+            </div>
+
+            <button class="payment-button" id="pay-btn">Pay Now</button>
+        `;
+        document.body.appendChild(paymentContainer);
+
+        // Payment Status
+        const paymentStatus = document.createElement('div');
+        paymentStatus.id = 'payment-status';
+        paymentStatus.textContent = 'Successfully Paid!';
+        document.body.appendChild(paymentStatus);
+
+        // Show the corresponding fields based on selected payment method
+        const paymentMethodSelect = document.getElementById('payment-method');
+        const cardFields = document.querySelector('.card-fields');
+        const upiFields = document.querySelector('.upi-fields');
+
+        paymentMethodSelect.addEventListener('change', (e) => {
+            if (e.target.value === 'card') {
+                cardFields.style.display = 'block';
+                upiFields.style.display = 'none';
+            } else {
+                cardFields.style.display = 'none';
+                upiFields.style.display = 'block';
+            }
+        });
+
+        // Show the selected payment fields initially
+        paymentMethodSelect.dispatchEvent(new Event('change'));
+
+        // Handle payment
+        const payButton = document.getElementById('pay-btn');
+        payButton.addEventListener('click', () => {
+            // Here we simulate a successful payment
+            paymentStatus.style.display = 'block';
+
+            setTimeout(() => {
+                paymentStatus.style.display = 'none'; // Hide message after 3 seconds
+                
+                // Redirect to home screen (adjust the URL to match your home screen path)
+                window.location.href = 'product.html'; // Replace '/home' with the correct URL
+            }, 3000);
+        });
+
+    </script>
+</body>
+</html>
